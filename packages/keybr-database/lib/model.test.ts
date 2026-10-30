@@ -72,6 +72,14 @@ test("validate models", (ctx) => {
   });
 
   doesNotThrow(() => {
+    // OIDC subject identifiers are opaque; Authelia sends a UUID.
+    UserExternalId.fromJson({
+      provider: "authelia",
+      externalId: "0a0b0c0d-1234-5678-9abc-def012345678",
+    });
+  });
+
+  doesNotThrow(() => {
     UserExternalId.fromJson({
       provider: "provider",
       externalId: "externalId",

@@ -284,7 +284,10 @@ export class UserExternalId extends TimestampMixin(Model) {
     properties: {
       id: { type: "integer" },
       provider: { type: "string", minLength: 1, maxLength: 16 },
-      externalId: { type: "string", minLength: 1, maxLength: 32 },
+      // OIDC subject identifiers are opaque and only bounded by the OIDC
+      // spec's string type. Authelia's is a UUID (36 characters), which the
+      // previous 32-character limit rejected at login.
+      externalId: { type: "string", minLength: 1, maxLength: 255 },
       name: { type: ["null", "string"], minLength: 1, maxLength: 64 },
       url: { type: ["null", "string"], minLength: 1, maxLength: 256 },
       imageUrl: { type: ["null", "string"], minLength: 1, maxLength: 256 },
