@@ -5,7 +5,7 @@ import { FakeIntlProvider } from "@keybr/intl";
 import { PageDataContext, Pages } from "@keybr/pages-shared";
 import { load } from "cheerio";
 import { renderToStaticMarkup } from "react-dom/server";
-import { equal, isFalse, isTrue, like } from "rich-assert";
+import { equal, isFalse, like } from "rich-assert";
 import { Shell } from "./Shell.tsx";
 
 test("render", () => {
@@ -41,45 +41,7 @@ test("render", () => {
     "data-color": "system",
     "data-font": "open-sans",
   });
-  isTrue(html.includes("google"));
-  isTrue(html.includes("cloudflare"));
-  equal($("nav").length, 0);
-});
-
-test("render alt", () => {
-  const html = renderToStaticMarkup(
-    <ManifestContext.Provider value={Manifest.fake}>
-      <PageDataContext.Provider
-        value={{
-          base: "https://www.keybr.com/",
-          locale: "en",
-          user: null,
-          publicUser: {
-            id: "abc",
-            name: "name",
-            imageUrl: null,
-            premium: true,
-          },
-          settings: null,
-          loginMethods: { email: true, oauth: [] },
-        }}
-      >
-        <FakeIntlProvider>
-          <Shell page={Pages.practice} headers={fakeHeaders()} />
-        </FakeIntlProvider>
-      </PageDataContext.Provider>
-    </ManifestContext.Provider>,
-  );
-
-  const $ = load(html);
-
-  like($("html").attr(), {
-    "prefix": "og: http://ogp.me/ns#",
-    "lang": "en",
-    "dir": "ltr",
-    "data-color": "system",
-    "data-font": "open-sans",
-  });
+  // This fork renders no ads or trackers for anyone, premium or not.
   isFalse(html.includes("google"));
   isFalse(html.includes("cloudflare"));
   equal($("nav").length, 0);
