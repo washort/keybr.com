@@ -16,7 +16,10 @@ export const pAdapter = (
     adapter: value,
   });
   if (container.has(AdapterFactory, value)) {
-    return container.get(AdapterFactory, value).makeAdapter(redirectUri);
+    return container.get(AdapterFactory, value).makeAdapter(
+      redirectUri,
+      container.get("canonicalUrl") as string,
+    );
   }
   throw new NotFoundError();
 };

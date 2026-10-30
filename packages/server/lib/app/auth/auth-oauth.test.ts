@@ -27,7 +27,7 @@ test.beforeEach(async () => {
     @provides({ id: AdapterFactory, name: "fake", singleton: true })
     fake(@inject("canonicalUrl") canonicalUrl: string): AdapterFactory {
       return new (class Fake extends AdapterFactory {
-        makeAdapter(redirectUri: string): AbstractAdapter {
+        makeAdapter(redirectUri: string, _canonicalUrl: string): AbstractAdapter {
           return new FakeAdapter({
             clientId: "clientId",
             clientSecret: "clientSecret",

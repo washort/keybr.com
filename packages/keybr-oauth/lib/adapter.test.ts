@@ -38,10 +38,10 @@ const accessToken = new AccessToken({
   expires_in: 1000,
 });
 
-test("generate authorization url", () => {
+test("generate authorization url", async () => {
   // Act.
 
-  const authorizationUrl = underTest.getAuthorizationUrl({ state: "state1" });
+  const authorizationUrl = await underTest.getAuthorizationUrl({ state: "state1" });
 
   // Assert.
 

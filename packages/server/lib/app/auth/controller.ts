@@ -10,11 +10,13 @@ import {
   ApplicationError,
   BadRequestError,
   ForbiddenError,
+  NotFoundError,
 } from "@fastr/errors";
 import { inject, injectable } from "@fastr/invert";
 import { type RouterState } from "@fastr/middleware-router";
 import { randomString, type SessionState } from "@fastr/middleware-session";
 import { User, UserLoginRequest } from "@keybr/database";
+import { Env } from "@keybr/config";
 import { Logger } from "@keybr/logger";
 import { type AbstractAdapter } from "@keybr/oauth";
 import { z } from "zod";
@@ -58,7 +60,21 @@ export class Controller {
     const state = randomString(20);
     ctx.state.session.start();
     ctx.state.session.set("authState", state);
-    ctx.response.redirect(adapter.getAuthorizationUrl({ state }));
+    let codeChallenge: string | undefined;
+    if (adapter.usesPkce) {
+      const codeVerifier = randomString(43);
+      ctx.state.session.set("codeVerifier", codeVerifier);
+      const hash = await import("node:crypto").then((m) =>
+        m.createHash("sha256").update(codeVerifier).digest(),
+      );
+      codeChallenge = Buffer.from(hash)
+        .toString("base64")
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/, "");
+    }
+    const authorizationUrl = await adapter.getAuthorizationUrl({ state, codeChallenge });
+    ctx.response.redirect(authorizationUrl);
   }
 
   @http.GET({ name: "oauth-callback", path: "/auth/oauth-callback/{adapter}" })
@@ -69,9 +85,10 @@ export class Controller {
     @queryParam("state", zod(z.string().min(1))) state: string,
   ) {
     const authState = ctx.state.session.pull("authState");
+    const codeVerifier = ctx.state.session.pull("codeVerifier");
     ctx.state.session.destroy();
     if (state === authState) {
-      const token = await adapter.getAccessToken({ code });
+      const token = await adapter.getAccessToken({ code, codeVerifier });
       const resourceOwner = await adapter.getProfile(token);
       if (resourceOwner.email != null) {
         const user = await User.ensure(resourceOwner);
@@ -89,6 +106,9 @@ export class Controller {
     ctx: Context<RouterState & SessionState & AuthState>,
     @body.json(PCreateToken, jsonOpts) { email }: TCreateToken,
   ) {
+    if (Env.getString("AUTH_EMAIL_LOGIN", "true") === "false") {
+      throw new NotFoundError();
+    }
     const token = String(await UserLoginRequest.init(email));
     const link = String(
       new URL(ctx.state.router.makePath("login", { token }), this.canonicalUrl),
@@ -107,6 +127,9 @@ export class Controller {
     ctx: Context<RouterState & SessionState & AuthState>,
     @pathParam("token", zod(z.string().min(1))) token: string,
   ) {
+    if (Env.getString("AUTH_EMAIL_LOGIN", "true") === "false") {
+      throw new NotFoundError();
+    }
     ctx.state.session.destroy();
     const user = await UserLoginRequest.login(token);
     if (user != null) {

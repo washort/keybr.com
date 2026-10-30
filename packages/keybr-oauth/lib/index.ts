@@ -3,6 +3,7 @@ export * from "./adapter/facebook/index.ts";
 export * from "./adapter/fake/index.ts";
 export * from "./adapter/google/index.ts";
 export * from "./adapter/microsoft/index.ts";
+export * from "./adapter/oidc/index.ts";
 export * from "./errors.ts";
 export * from "./resource-owner.ts";
 export * from "./token.ts";

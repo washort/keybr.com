@@ -24,9 +24,12 @@ export abstract class AbstractAdapter {
   protected readonly clientSecret: string;
   protected readonly scope: string;
   protected readonly redirectUri: string;
-  protected readonly authorizationUri: string;
-  protected readonly tokenUri: string;
-  protected readonly profileUri: string;
+  protected authorizationUri: string;
+  protected tokenUri: string;
+  protected profileUri: string;
+
+  /** Whether this adapter requires PKCE (S256) on the authorization flow. */
+  readonly usesPkce: boolean = false;
 
   protected constructor(
     { clientId, clientSecret, scope, redirectUri }: ClientConfig,
@@ -41,7 +44,17 @@ export abstract class AbstractAdapter {
     this.profileUri = profileUri;
   }
 
-  getAuthorizationUrl({ state }: { state: string }): string {
+  /** Hook for adapters that resolve endpoints lazily (e.g. OIDC discovery). */
+  protected async resolveEndpoints(): Promise<void> {}
+
+  async getAuthorizationUrl({
+    state,
+    codeChallenge,
+  }: {
+    state: string;
+    codeChallenge?: string;
+  }): Promise<string> {
+    await this.resolveEndpoints();
     const url = new URL(this.authorizationUri);
     for (const [key, value] of Object.entries({
       response_type: "code",
@@ -49,6 +62,12 @@ export abstract class AbstractAdapter {
       scope: this.scope,
       redirect_uri: this.redirectUri,
       state,
+      ...(codeChallenge
+        ? {
+            code_challenge: codeChallenge,
+            code_challenge_method: "S256",
+          }
+        : {}),
     })) {
       if (value) {
         url.searchParams.set(key, value);
@@ -57,21 +76,30 @@ export abstract class AbstractAdapter {
     return String(url);
   }
 
-  async getAccessToken({ code }: { code: string }): Promise<AccessToken> {
+  async getAccessToken({
+    code,
+    codeVerifier,
+  }: {
+    code: string;
+    codeVerifier?: string;
+  }): Promise<AccessToken> {
+    await this.resolveEndpoints();
+    const params: Array<[string, string]> = [
+      ["grant_type", "authorization_code"],
+      ["client_id", this.clientId],
+      ["client_secret", this.clientSecret],
+      ["redirect_uri", this.redirectUri],
+      ["code", code],
+    ];
+    if (codeVerifier) {
+      params.push(["code_verifier", codeVerifier]);
+    }
     const response = await request
       .use(this.handleErrors())
       .use(handleErrors())
       .use(expectType("application/json"))
       .POST(this.tokenUri)
-      .send(
-        new URLSearchParams([
-          ["grant_type", "authorization_code"],
-          ["client_id", this.clientId],
-          ["client_secret", this.clientSecret],
-          ["redirect_uri", this.redirectUri],
-          ["code", code],
-        ]),
-      );
+      .send(new URLSearchParams(params));
     return new AccessToken(await response.body.json());
   }
 
@@ -100,6 +128,7 @@ export abstract class AbstractAdapter {
   }
 
   async getProfile(accessToken: AccessToken): Promise<ResourceOwner> {
+    await this.resolveEndpoints();
     const response = await request
       .use(this.handleErrors())
       .use(handleErrors())
