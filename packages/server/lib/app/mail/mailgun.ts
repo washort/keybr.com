@@ -10,8 +10,11 @@ export class MailgunConfig {
   readonly from: string;
 
   constructor() {
-    this.domain = Env.getString("MAIL_DOMAIN");
-    this.key = Env.getString("MAIL_KEY");
+    // Both are optional: an instance that disables e-mail login
+    // (AUTH_EMAIL_LOGIN=false) never sends mail, and should not have to
+    // fabricate Mailgun credentials just to start.
+    this.domain = Env.getString("MAIL_DOMAIN", "");
+    this.key = Env.getString("MAIL_KEY", "");
     const fromAddress = Env.getString("MAIL_FROM_ADDRESS", "k@keybr.com");
     const fromName = Env.getString("MAIL_FROM_NAME", "keybr.com");
     this.from = `${fromName} <${fromAddress}>`;
@@ -31,6 +34,9 @@ export class MailgunMailer extends Mailer {
     text,
     html,
   }: Mailer.Message): Promise<void> {
+    if (this.config.domain === "" || this.config.key === "") {
+      throw new Error("Mail is not configured: set MAIL_DOMAIN and MAIL_KEY");
+    }
     const body = new URLSearchParams([
       ["from", from],
       ["to", to],
