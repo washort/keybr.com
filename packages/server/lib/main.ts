@@ -30,11 +30,14 @@ if (cluster.isPrimary) {
 } else {
   const container = makeContainer();
   const service = container.get(Service);
+  // Optional listen address. Absent means all interfaces, as before.
+  const host = Env.getOptionalString("SERVER_HOST");
   switch (process.argv[2]) {
     case "http":
       process.title = "keybr server worker process";
       service.start({
         app: container.get(Application, kMain),
+        host,
         port: Env.getPort("SERVER_PORT", 3000),
       });
       break;
@@ -42,6 +45,7 @@ if (cluster.isPrimary) {
       process.title = "keybr game server worker process";
       service.start({
         app: container.get(Application, kGame),
+        host,
         port: Env.getPort("SERVER_PORT_WS", 3001),
       });
       container.get(Game).start();

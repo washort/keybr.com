@@ -21,7 +21,15 @@ export class Service {
     this.#closer = createCloser(this.#server, this.#webSocketServer);
   }
 
-  start({ app, port }: { app: Application; port: number }) {
+  start({
+    app,
+    port,
+    host,
+  }: {
+    app: Application;
+    port: number;
+    host?: string;
+  }) {
     const callback = app.callback();
     this.#server.on("request", callback);
     this.#server.on("upgrade", (req, socket, head) => {
@@ -33,14 +41,14 @@ export class Service {
       res.shouldKeepAlive = false;
       callback(req, res);
     });
-    this.#server.listen(port);
+    this.#server.listen(port, host);
     process.on("SIGINT", () => {
       this.stop();
     });
     process.on("SIGTERM", () => {
       this.stop();
     });
-    Logger.info("Server started", { pid, port, username });
+    Logger.info("Server started", { pid, host, port, username });
   }
 
   stop() {

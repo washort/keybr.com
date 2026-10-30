@@ -45,6 +45,16 @@ export class Env {
     return Env.getValue(name, defaultValue, String);
   }
 
+  /**
+   * Like {@link getString}, but returns `undefined` when the property is
+   * missing or empty. Use this for optional settings whose absence is
+   * meaningful, such as a listen address that defaults to all interfaces.
+   */
+  static getOptionalString(name: string): string | undefined {
+    const value = process.env[name];
+    return value == null || value === "" ? undefined : value;
+  }
+
   static getNumber(name: string, defaultValue?: number): number {
     return Env.getValue(name, defaultValue, Env.asNumber);
   }

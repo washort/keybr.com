@@ -17,6 +17,17 @@ test("get string", () => {
   equal(Env.getString("A_STRING", "abc"), "xyz");
 });
 
+test("get optional string", () => {
+  delete process.env.A_OPTIONAL_STRING;
+  equal(Env.getOptionalString("A_OPTIONAL_STRING"), undefined);
+
+  process.env.A_OPTIONAL_STRING = "";
+  equal(Env.getOptionalString("A_OPTIONAL_STRING"), undefined);
+
+  process.env.A_OPTIONAL_STRING = "xyz";
+  equal(Env.getOptionalString("A_OPTIONAL_STRING"), "xyz");
+});
+
 test("get number", () => {
   throws(() => Env.getNumber("A_NUMBER"), /Missing env property 'A_NUMBER'/);
   equal(Env.getNumber("A_NUMBER", 999), 999);
