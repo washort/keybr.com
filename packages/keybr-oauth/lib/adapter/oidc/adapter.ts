@@ -15,13 +15,22 @@ async function discover(issuer: string): Promise<OidcDiscovery> {
     return cached;
   }
   const promise = (async () => {
-    const url = new URL(".well-known/openid-configuration", issuer.endsWith("/") ? issuer : issuer + "/");
+    const url = new URL(
+      ".well-known/openid-configuration",
+      issuer.endsWith("/") ? issuer : issuer + "/",
+    );
     const response = await fetch(url);
     if (!response.ok) {
-      throw new Error(`OIDC discovery failed: ${response.status} ${response.statusText}`);
+      throw new Error(
+        `OIDC discovery failed: ${response.status} ${response.statusText}`,
+      );
     }
     const json = (await response.json()) as Partial<OidcDiscovery>;
-    if (!json.authorization_endpoint || !json.token_endpoint || !json.userinfo_endpoint) {
+    if (
+      !json.authorization_endpoint ||
+      !json.token_endpoint ||
+      !json.userinfo_endpoint
+    ) {
       throw new Error("OIDC discovery response missing required endpoints");
     }
     return {
@@ -39,7 +48,7 @@ async function discover(issuer: string): Promise<OidcDiscovery> {
 }
 
 export class OidcAdapter extends AbstractAdapter {
-  readonly usesPkce = true;
+  override readonly usesPkce = true;
 
   private readonly providerId: string;
   private readonly issuer: string;
@@ -62,15 +71,14 @@ export class OidcAdapter extends AbstractAdapter {
 
   protected override async resolveEndpoints(): Promise<void> {
     const needsDiscovery =
-      !this.authorizationUri ||
-      !this.tokenUri ||
-      !this.profileUri;
+      !this.authorizationUri || !this.tokenUri || !this.profileUri;
     if (!needsDiscovery) {
       return;
     }
     const d = await discover(this.issuer);
     if (!this.authorizationUri) {
-      this.authorizationUri = this.explicitAuthorizationUri ?? d.authorization_endpoint;
+      this.authorizationUri =
+        this.explicitAuthorizationUri ?? d.authorization_endpoint;
     }
     if (!this.tokenUri) {
       this.tokenUri = this.explicitTokenUri ?? d.token_endpoint;
@@ -79,7 +87,8 @@ export class OidcAdapter extends AbstractAdapter {
       this.profileUri = this.explicitUserinfoUri ?? d.userinfo_endpoint;
     }
     // If explicit values were provided they were set in the constructor; ensure.
-    if (!this.authorizationUri) this.authorizationUri = d.authorization_endpoint;
+    if (!this.authorizationUri)
+      this.authorizationUri = d.authorization_endpoint;
     if (!this.tokenUri) this.tokenUri = d.token_endpoint;
     if (!this.profileUri) this.profileUri = d.userinfo_endpoint;
   }
@@ -87,7 +96,15 @@ export class OidcAdapter extends AbstractAdapter {
   protected override parseProfileResponse(
     response: OidcProfileResponse,
   ): ResourceOwner<OidcProfileResponse> {
-    const { sub, email, email_verified, name, preferred_username, picture, profile } = response;
+    const {
+      sub,
+      email,
+      email_verified,
+      name,
+      preferred_username,
+      picture,
+      profile,
+    } = response;
     return {
       raw: response,
       provider: this.providerId,

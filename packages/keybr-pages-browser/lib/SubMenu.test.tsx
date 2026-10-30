@@ -20,6 +20,7 @@ test("render", () => {
           premium: false,
         },
         settings: null,
+        loginMethods: { email: true, oauth: [] },
       }}
     >
       <PreferredLocaleContext.Provider value="pl">

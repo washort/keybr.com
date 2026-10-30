@@ -1,3 +1,4 @@
+import { usePageData } from "@keybr/pages-shared";
 import { Article, Header } from "@keybr/widget";
 import { FormattedMessage } from "react-intl";
 import { AccountName } from "./AccountName.tsx";
@@ -7,6 +8,8 @@ import { EmailLoginForm } from "./EmailLoginForm.tsx";
 import { OAuthLoginForm } from "./OAuthLoginForm.tsx";
 
 export function SignInSection({ actions }: { actions: SignInActions }) {
+  const { loginMethods } = usePageData();
+
   return (
     <Article>
       <AccountName user={null} />
@@ -42,23 +45,31 @@ export function SignInSection({ actions }: { actions: SignInActions }) {
 
       <AccountPricePreview />
 
-      <Header level={2}>
-        <FormattedMessage
-          id="t_Signin_with_social_"
-          defaultMessage="Sign-in with social networks"
-        />
-      </Header>
+      {loginMethods.oauth.length > 0 && (
+        <>
+          <Header level={2}>
+            <FormattedMessage
+              id="t_Signin_with_social_"
+              defaultMessage="Sign-in with social networks"
+            />
+          </Header>
 
-      <OAuthLoginForm />
+          <OAuthLoginForm providers={loginMethods.oauth} />
+        </>
+      )}
 
-      <Header level={2}>
-        <FormattedMessage
-          id="t_Signin_with_email"
-          defaultMessage="Sign-in with e-mail"
-        />
-      </Header>
+      {loginMethods.email && (
+        <>
+          <Header level={2}>
+            <FormattedMessage
+              id="t_Signin_with_email"
+              defaultMessage="Sign-in with e-mail"
+            />
+          </Header>
 
-      <EmailLoginForm actions={actions} />
+          <EmailLoginForm actions={actions} />
+        </>
+      )}
     </Article>
   );
 }

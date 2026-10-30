@@ -32,6 +32,36 @@ export type PageData = {
    * Serialized user settings.
    */
   readonly settings: unknown | null;
+  /**
+   * The sign-in methods this server has configured.
+   *
+   * The account page renders only these, so an instance that has no Google /
+   * Microsoft / Facebook credentials does not display buttons that would
+   * fail when clicked.
+   */
+  readonly loginMethods: LoginMethods;
+};
+
+export type LoginMethods = {
+  /**
+   * Whether e-mail magic-link login is available.
+   */
+  readonly email: boolean;
+  /**
+   * OAuth/OIDC providers, in display order.
+   */
+  readonly oauth: readonly OAuthProvider[];
+};
+
+export type OAuthProvider = {
+  /**
+   * Provider id, used as the last path segment of /auth/oauth-init/{id}.
+   */
+  readonly id: string;
+  /**
+   * Human-readable button label.
+   */
+  readonly name: string;
 };
 
 export type UserDetails = {

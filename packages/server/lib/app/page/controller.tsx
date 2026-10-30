@@ -14,7 +14,7 @@ import {
 import { SettingsDatabase } from "@keybr/settings-database";
 import { staticTheme, ThemeContext, ThemePrefs } from "@keybr/themes";
 import { type IntlShape, RawIntlProvider } from "react-intl";
-import { type AuthState } from "../auth/index.ts";
+import { type AuthState, getLoginMethods } from "../auth/index.ts";
 import { localePattern, pIntl, preferredLocale } from "./intl.ts";
 
 @injectable()
@@ -195,6 +195,7 @@ export class Controller {
       user: user?.toDetails() ?? null,
       publicUser,
       settings: settings?.toJSON() ?? null,
+      loginMethods: getLoginMethods(),
     };
   }
 

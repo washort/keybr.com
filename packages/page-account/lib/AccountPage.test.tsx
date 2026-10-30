@@ -19,6 +19,7 @@ test("render sign-in fragment", () => {
           premium: false,
         },
         settings: null,
+        loginMethods: { email: true, oauth: [] },
       }}
     >
       <FakeIntlProvider>
@@ -64,6 +65,7 @@ test("render account fragment", () => {
           premium: false,
         },
         settings: null,
+        loginMethods: { email: true, oauth: [] },
       }}
     >
       <FakeIntlProvider>

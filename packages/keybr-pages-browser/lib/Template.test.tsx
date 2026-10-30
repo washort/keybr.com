@@ -19,6 +19,7 @@ test("render", () => {
           imageUrl: null,
         },
         settings: null,
+        loginMethods: { email: true, oauth: [] },
       }}
     >
       <FakeIntlProvider>
@@ -50,6 +51,7 @@ test("render alt", () => {
           premium: true,
         },
         settings: null,
+        loginMethods: { email: true, oauth: [] },
       }}
     >
       <FakeIntlProvider>

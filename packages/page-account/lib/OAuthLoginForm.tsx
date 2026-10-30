@@ -1,40 +1,29 @@
+import { type OAuthProvider } from "@keybr/pages-shared";
 import { Button, Field, FieldList, Icon, Para } from "@keybr/widget";
-import { mdiFacebook, mdiGoogle, mdiMicrosoft } from "@mdi/js";
+import { mdiFacebook, mdiGoogle, mdiLogin, mdiMicrosoft } from "@mdi/js";
 import { FormattedMessage, useIntl } from "react-intl";
 
-const providers: readonly {
-  readonly id: string;
-  readonly name: string;
-  readonly icon: string;
-}[] = [
-  {
-    id: "google",
-    name: "Google",
-    icon: mdiGoogle,
-  },
-  {
-    id: "microsoft",
-    name: "Microsoft",
-    icon: mdiMicrosoft,
-  },
-  {
-    id: "facebook",
-    name: "Facebook",
-    icon: mdiFacebook,
-  },
-];
+const icons: Readonly<Record<string, string>> = {
+  google: mdiGoogle,
+  microsoft: mdiMicrosoft,
+  facebook: mdiFacebook,
+};
 
-export function OAuthLoginForm() {
+export function OAuthLoginForm({
+  providers,
+}: {
+  providers: readonly OAuthProvider[];
+}) {
   const { formatMessage } = useIntl();
 
   return (
     <>
       <FieldList>
-        {providers.map(({ id, name, icon }) => (
+        {providers.map(({ id, name }) => (
           <Field key={id}>
             <Button
               size={16}
-              icon={<Icon shape={icon} />}
+              icon={<Icon shape={icons[id] ?? mdiLogin} />}
               label={formatMessage(
                 {
                   id: "t_Signin_with_name",
